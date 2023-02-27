@@ -79,7 +79,7 @@ export const LoginByState = async (req: Request, resp: Response) => {
         const client = await Connect()
         try {
             const db = client.db("twelve_weeks")
-            const user = await db.collection("user").findOne({ id: p.id })
+            const user = await db.collection("user").findOne({ id: p.id._value })
             if (user) {
                 if (user.pwd === p.pwd) {
                     /**
@@ -148,14 +148,16 @@ export const LoginByState = async (req: Request, resp: Response) => {
 
 export const Login = async (req: Request, resp: Response) => {
     const p = req.body
+    console.log('333', req.body)
     // console.log("login的参数:", p)
     try {
         const client = await Connect();
         try {
             const db = client.db("twelve_weeks");
             const user = await db.collection("user").findOne({ id:p.id,role:p.role })
+            console.log('5555', user)
             if (user) {
-                if (user.pwd === p.pwd) {
+                if (user.password === p.password) {
                     // JWT 编码
                     const token = jwt.sign({ id: user.id, role: user.role }, secretOrPrivateKey, {
                         expiresIn: "24h"
@@ -362,6 +364,7 @@ export const RemoveCart = async (req:Request,resp:Response) => {
 
 export const Register = async (req: Request, resp: Response) => {
     const p = req.body;
+    console.log('11',p)
     //去连接数据库
     try {
         const client = await Connect()
@@ -383,6 +386,7 @@ export const Register = async (req: Request, resp: Response) => {
          const res:UpdateResult = await db.collection("user").updateOne(query,{
             "$setOnInsert":insert
          },options)
+         console.log('8888', res)
          if(res.upsertedCount === 1){
             resp.json({
                 code:1,

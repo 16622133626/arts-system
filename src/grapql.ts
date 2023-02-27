@@ -30,10 +30,9 @@ type ResData {
 type Good {
     id:String,
     name:String,
-    price:Float,
     imgpath:String,
     gooddesc:String,
-    count:Int,
+    likeCount:Int,
     type (id:String):Dict
     userId:String
 }
@@ -84,9 +83,6 @@ const resolvers = {
         delGood:gr.delGood
     },
     Good:{
-        // imgpath:(parent:any) => {
-        //     return "http://localhost:3000/static/upload/" + parent.imgpath
-        // },
         imgpath:(parent:any) =>parent.imgpath.indexOf("http") >= 0 ? parent.imgpath : `${protocal}://${ip}:${port}${imgs_url}/` + parent.imgpath,
         type:gr.GoodType,
         

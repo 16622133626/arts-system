@@ -93,7 +93,7 @@ export const GoodType = async (parent: any, args: any) => {
     }
 }
 export const HomeImgs = () => {
-    const baseUrl = `${protocal}://${ip}:${port}${imgs_url}`  //报错…^^
+    const baseUrl = `${protocal}://${ip}:${port}${imgs_url}` 
     return [
         baseUrl + "/home01.png",
         baseUrl + "/home02.png",
@@ -102,7 +102,7 @@ export const HomeImgs = () => {
 }
 
 export const Categorys = async (parent: any, args: any) => {
-    console.log(args)
+    console.log('2222',args)
     try {
         //获取mongodb的客户端
         const client = await Connect()
@@ -138,11 +138,6 @@ export const Categorys = async (parent: any, args: any) => {
 }
 
 export const GoodsCategory = async (parent: any, args: any) => {
-    /*
-    上一步结果是
-    {id："03",name:"鞋类"}，
-     {id："04",name:"朝服"}
-    */
     try {
         const client = await Connect()
         try {

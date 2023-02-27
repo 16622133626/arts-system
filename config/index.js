@@ -2,7 +2,7 @@
 module.exports = {
     protocal:"http",
     ip:"127.0.0.1",
-    port:3000,
+    port:4000,
     asset_url:"/assets",
     imgs_url:"/assets/upload",
     secretOrPrivateKey: "hello" //密钥
