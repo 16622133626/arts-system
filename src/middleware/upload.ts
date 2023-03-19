@@ -15,3 +15,23 @@ export const uploadImg = multer({
         } 
     })
 })
+
+export const uploadBack = multer({
+    storage:multer.diskStorage({
+        destination:"asset/upload/backImg",
+        filename:(req,file,callback) => {
+            const ext:string = path.extname(file.originalname)
+            callback(null,Date.now() + ext)
+        } 
+    })
+})
+
+export const uploadWorkImg = multer({
+    storage:multer.diskStorage({
+        destination:"asset/upload",
+        filename:(req,file,callback) => {
+            const ext:string = path.extname(file.originalname)
+            callback(null,Date.now() + ext)
+        } 
+    })
+})

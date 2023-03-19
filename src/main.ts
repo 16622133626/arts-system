@@ -1,6 +1,7 @@
 // 在ts中默认使用ESM包管理
 import express,{Express} from "express";
 import {server as gql_server} from "./grapql"
+import bodyParser from 'body-parser'
 import {useRouter} from "./router"
 import cors from "cors";
 import {join} from "path"
@@ -13,6 +14,9 @@ const port = config.port;
 // multipart/form-data;
 app.use(express.json())  //为了拿到页面穿的数据  express.json() HttpKit中的"Content-Type"："application/json",
 app.use(express.urlencoded({extended:false})) //表单
+
+app.use(bodyParser.json({limit:'100mb'}));
+app.use(bodyParser.urlencoded({ limit:'100mb', extended: true }));
 //为了拿到页面穿的数据  express.urlencoded({extended:false}) HttpKit中的"Content-Type"："application/x-www-form=urlencoded",
 app.use(cors()) // 解决跨域 自动将所有的接口都会自动处理header中的信息
 // app.use("静态资源对外提供的路径","将哪个文件夹发布")

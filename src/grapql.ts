@@ -6,19 +6,24 @@ const {protocal,ip,port,imgs_url} = require("../config")
 const secretOrPrivateKey = "hello"
 const typeDefs = gql`
 type Query {
-    hello : String
-    num:Float
-    arr:[String]
     good (id:String!):Good
+    users(username:String):[User]
+    new (id:String!):New
+    news (title:String,type:String,start:Int!,count:Int!):[New]
     goods (name:String,type:String,start:Int!,count:Int!):[Good]
     homeImgs:[String]
     categorys (id:String!,type:[String]!):[Category]
     cart(userId:String!):[Good]
     orderList (userId:String!,start:Int!,count:Int!):[Order]
+    active (id:String!):Active
+    actives (name:String,type:String,start:Int!,count:Int!):[Active]
+    playcates:[PlayCate]
 }
 
 type Mutation {
     delGood (id:String!):ResData
+    delActive (id:String!):ResData
+    delUser (id:String!):ResData
 }
 
 type ResData {
@@ -26,28 +31,81 @@ type ResData {
     msg:String
 }
 
+type Active {
+    id:String,
+    name:String,
+    status (id:String):Dict,
+    people:Int,
+    workCount:Int,
+    prize:String,
+    startTime:String,
+    endTime:String,
+    resultPubTime:String,
+    playImgpath:String
+}
 
 type Good {
     id:String,
     name:String,
-    imgpath:String,
+    imgpath:String,  
+    publishTime:String,
+    imgpathDetail1:String,
+    imgpathDetail2:String,
+    imgpathDetail3:String,
+    imgpathDetail4:String,
     gooddesc:String,
+    joinActives:String,
     likeCount:Int,
-    type (id:String):Dict
+    reason:String,
+    collectionCount:Int
+    type (id:String):Dict,
     userId:String
+    like:Boolean
+    status:String
+    collection:Boolean
+}
+
+type User {
+    id:String,
+    avatar:String
+    pwd:String
+    status:String
+    username:String
+    role:String
+}
+
+type New {
+    id:String,
+    title:String,
+    intro:String,
+    content:String,
+    findImgpath:String
+    addTime:String
+    status (id:String):Dict,
 }
 
 type Dict {
     id:String,
-    name:String,
-    sort:Int
+    name:String
+}
 
+type Img {
+    id:String
+    url:String
 }
 
 type Category {
     id:String,
     name:String
     goods (start:Int!,count:Int!):[Good]
+    actives (start:Int!,count:Int!):[Active]
+    news (start:Int!,count:Int!):[New]
+}
+
+type PlayCate {
+    id:String,
+    name:String
+    actives:[Active]
 }
 
 
@@ -63,34 +121,49 @@ type Order {
 const resolvers = {
     //两个变量
     Query: {
-        hello: () => {
-            return "hello gql"
-        },
-        num: () => {
-            return 3.14
-        },
-        arr: () => {
-            return ["1", "hello", "你好"]
-        },
         goods: gr.Goods,
         good:gr.Good,
+        users:gr.User,
+        new:gr.New,
+        news:gr.News,
         homeImgs:gr.HomeImgs,
         categorys:gr.Categorys,
         cart:gr.Cart,
-        orderList:gr.OrderList
+        orderList:gr.OrderList,
+        active:gr.Active,
+        actives:gr.Actives
     },
     Mutation:{
-        delGood:gr.delGood
+        delGood:gr.delGood,
+        delActive:gr.delActive,
+        delUser:gr.delUser
     },
     Good:{
         imgpath:(parent:any) =>parent.imgpath.indexOf("http") >= 0 ? parent.imgpath : `${protocal}://${ip}:${port}${imgs_url}/` + parent.imgpath,
+        imgpathDetail1: (parent: any) => `http://${ip}:${port}${imgs_url}/` + parent.imgpathDetail1,
+        imgpathDetail2: (parent: any) => `http://${ip}:${port}${imgs_url}/` + parent.imgpathDetail2,
+        imgpathDetail3: (parent: any) => `http://${ip}:${port}${imgs_url}/` + parent.imgpathDetail3,
+        imgpathDetail4: (parent: any) => `http://${ip}:${port}${imgs_url}/` + parent.imgpathDetail4,
         type:gr.GoodType,
         
     },
+    New:{
+        findImgpath:(parent:any) =>parent.findImgpath.indexOf("http") >= 0 ? parent.findImgpath : `${protocal}://${ip}:${port}${imgs_url}/` + parent.findImgpath,
+        status:gr.NewsStatus
+    },
+    User:{
+        avatar:(parent: any) => `http://${ip}:${port}${imgs_url}/` + parent.avatar,
+    },
     Category:{
         //呆着类型的查询
-        goods:gr.GoodsCategory
+        goods:gr.GoodsCategory,
+        actives:gr.playCates,
+        news:gr.NewsCates
     },
+    // PlayCate:{
+    //     // 带着类型的查询
+    //     actives:gr.playCates
+    // },
     Order:{
         // sysdate:(parent:any) => {
         //     console.log(parent.sysdate.toString())
@@ -98,6 +171,10 @@ const resolvers = {
         // },
         status:gr.OrderStatus,
 
+    },
+    Active:{
+        playImgpath:(parent:any) =>parent.playImgpath.indexOf("http") >= 0 ? parent.playImgpath : `${protocal}://${ip}:${port}${imgs_url}/` + parent.playImgpath,
+        status:gr.ActiveStatus
     }
 }
 
