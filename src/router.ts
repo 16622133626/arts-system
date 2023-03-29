@@ -17,10 +17,16 @@ export const useRouter = (app:Express) => {
     app.post("/api/loginbystate",api.LoginByState)
     //收藏作品接口  中间件拦截
     app.post("/api/collection",checkToken,api.Collection)
+    //关注用户接口  中间件拦截
+    app.post("/api/concern",checkToken,api.Concern)
+    // 取消关注功能接口
+    app.post("/api/cancelconcern",checkToken,api.CancelConcern)
      // 收藏取消
     app.post("/api/cancelcollection",checkToken,api.CancelCollection)
     // 点赞功能接口
-    app.post("/api/addcart",checkToken,api.Like)
+    app.post("/api/like",checkToken,api.Like)
+    // 点赞取消功能接口
+    app.post("/api/cancellike",checkToken,api.CancelLike)
     //从购物车移除
     app.post("/api/removecart",checkToken,api.RemoveCart)
 
@@ -28,11 +34,9 @@ export const useRouter = (app:Express) => {
      //上传文件的接口 中间件校验登录
     app.post("/api/uploadimg",uploadImg.single("file"),checkToken,api.UploadImg)
     //上传主页背景的接口 中间件校验登录
-    app.post("/api/uploadbackimg",uploadBack.single("file"),checkToken,api.UploadBackImg)
-    
+    app.post("/api/uploadbackimg",uploadBack.single("file"),checkToken,api.UploadBackImg) 
     // 上传详情图片接口 // 后台管理上传活动照片
-    app.post("/api/uploadwork",uploadWorkImg.single('file'),checkToken,api.UploadWork)
-    
+    app.post("/api/uploadwork",uploadWorkImg.single('file'),checkToken,api.UploadWork) 
     // 发布作品接口
     app.post("/api/publishwork",checkToken,api.Publish)
     // 报名活动 
@@ -73,10 +77,14 @@ export const useRouter = (app:Express) => {
     app.post('/api/querygood',api.queryGood)
     // 查询所有收藏
     app.post('/api/querycollection',api.QueryCollections)
+    // 查询所有收藏
+    app.post('/api/querylike',api.QueryLike)
      // 查询所有报名用户
      app.post('/api/queryerrolluser',api.QueryErroll)
      // 查询参赛作品
      app.post('/api/queryjoinwork',api.QueryJoin)
+     // 查询当前活动数据
+     app.post('/api/querycurrent',api.QueryCurrentActive)
     // 实时更改活动时间状态
      app.post('/api/updatetime',api.UpdateTime)
      // 实时更改活动作品数量
@@ -87,6 +95,22 @@ export const useRouter = (app:Express) => {
      app.post('/api/getkeyword',api.GetKeyWord)
      // 短信验证登录接口
      app.post('/api/nopasslogin',api.NoPassLogin)
+     // 我的收藏页面查询接口
+    app.post("/api/querycollect",checkToken,api.QueryCollectData)
+    // 我的点赞页面查询接口
+    app.post("/api/querylike",checkToken,api.QueryLickData)
+    // 我的点赞页面查询接口
+    app.post("/api/queryconcern",checkToken,api.QueryConcernData)
+    // 我的点赞页面查询接口 /api/updateconcern
+    app.post("/api/updatelike",api.UpdateLike)
+    // 我的shoucang页面查询接口 搜藏成功后收藏量+1
+    app.post("/api/updatecollec",api.Updatecollec)
+    //  取消收藏成功后收藏量-1
+    app.post("/api/updatedelcollec",api.UpdateDelcollec)
+    //  取消点赞成功后收藏量-1
+    app.post("/api/updatedellike",api.UpdateDelLike)
+    // 我的关注页面查询接口
+    app.post("/api/queryconcern",checkToken,api.QueryConcernData)
 
     app.post("/api/modifyproduct",uploadImg.single("file"),api.ModifyProduct)
 }

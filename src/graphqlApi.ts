@@ -602,3 +602,44 @@ export const delUser = async (parent: any, args: any) => {
     }
 }
 
+export const delCate = async (parent: any, args: any) => {
+    console.log('555',args)
+    try{
+
+        // if(!context.checkToken()){
+        //     throw new Error('Unauthorized')
+        // } 
+        const client = await Connect()
+        try {
+            const db = client.db("twelve_weeks")
+            const res = await db.collection("dict").deleteOne({id:args.id})
+            console.log(res)
+            if(res.deletedCount > 0){
+                return {
+                    code:1,
+                    msg:"删除成功"
+                }
+            }else {
+                return {
+                    code:2,
+                    msg:"删除失败"
+                }
+            }
+            
+        }catch(err:any){
+            return {
+                code:3,
+                msg:err.message
+            }
+        }finally {
+            client.close()
+        }
+    }catch(e:any){
+        return {
+            code:4,
+            msg:e.message
+        }
+    }
+}
+
+

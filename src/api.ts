@@ -39,12 +39,25 @@ export const queryGood = async (req: Request, resp: Response) => {
     try {
         const client = await Connect()
         const db = client.db("twelve_weeks");
-        const res = await db.collection("goods").find().toArray()
+        if(params.id === '') {
+            const res = await db.collection("goods").find().toArray()
         resp.send({
             code: 1,
             msg: "成功",
             data: res
         })
+        }else {
+            const query = {
+                id:params.id
+            }
+            const res = await db.collection("goods").findOne(query)
+            resp.send({
+                code: 1,
+                msg: "成功",
+                data: res
+            })
+        }
+        
     } catch (err) {
         resp.send({
             code: 2,
@@ -84,7 +97,37 @@ export const QueryActive = async (req: Request, resp: Response) => {
 
 }
 
-// 查询活动数据
+// 查询正在进行当中活动数据
+export const QueryCurrentActive = async (req: Request, resp: Response) => {
+    const p = req.body;
+    console.log('chuandi 参数过来',p)
+    try {
+        const client = await Connect()
+        const db = client.db("twelve_weeks");
+        const query: any = {
+           id:p.status
+        }
+        const res = await db.collection("actives").find(query).toArray()
+        console.log('res',res)
+        resp.send({
+            code: 1,
+            msg: "数据库查询成功",
+            data: res
+        })
+    } catch (err) {
+        resp.send({
+            code: 2,
+            msg: "数据库查询失败",
+            data: err
+        })
+    }
+    // resp.header("Access-Control-Allow-Origin", "*"); // 这么写比较方便，但安全性太差
+    // resp.header("Access-Control-Allow-Origin", "http://127.0.0.1:5173"); 
+    // resp.send(["abc1","123","汉堡1","衣服2","可乐3"]
+
+}
+
+// 查询收藏数据 QueryLike
 export const QueryCollections = async (req: Request, resp: Response) => {
     const p = req.body;
     console.log('chuandi 参数过来',p)
@@ -108,9 +151,32 @@ export const QueryCollections = async (req: Request, resp: Response) => {
             data: err
         })
     }
-    // resp.header("Access-Control-Allow-Origin", "*"); // 这么写比较方便，但安全性太差
-    // resp.header("Access-Control-Allow-Origin", "http://127.0.0.1:5173"); 
-    // resp.send(["abc1","123","汉堡1","衣服2","可乐3"]
+
+}
+// 查询所有点赞
+export const QueryLike = async (req: Request, resp: Response) => {
+    const p = req.body;
+    console.log('chuandi 参数过来',p)
+    try {
+        const client = await Connect()
+        const db = client.db("twelve_weeks");
+        const query = {
+            userId:p.userId
+        }
+        const res = await db.collection("like").findOne(query)
+        console.log('res',res)
+        resp.send({
+            code: 1,
+            msg: "查询成功",
+            data: res
+        })
+    } catch (err) {
+        resp.send({
+            code: 2,
+            msg: "查询失败",
+            data: err
+        })
+    }
 
 }
 // 查询报名表数据
@@ -563,9 +629,6 @@ export const Collection = async (req: Request, resp: Response) => {
                 const colleList: string | any[] = []
                 colleList.push(p.goodId)
                 console.log('推进去',colleList)
-                const query = {
-                    userId:p.userId,
-                }
                 const insert = {
                     userId:p.userId,
                     userName:p.userName,
@@ -584,157 +647,66 @@ export const Collection = async (req: Request, resp: Response) => {
             }
             // 如果用户存在 先判断数组长度
             else {
-                    
-                    resUser?.colleList.forEach(async (e: any) => {
-                        console.log('666',222)
-                        if(e != p.goodId){
-                            console.log('666',333)
-                            resUser?.colleList.push(p.goodId) //已经推进去了
-                            console.log('666',resUser.colleList)
-                            const query = {
-                                userId:p.userId,
-                            }
-                            const update = {
-                                count:resUser.count+1,
-                                colleList:resUser.colleList
-                            }
-                            // session 会话已结束？？
-                            const resInsert = await db.collection("collection").updateOne(query,{
-                                "$set":update,
-                            })
-                            console.log('555',resInsert)
-                            if(resInsert.upsertedCount === 1 || resInsert.modifiedCount === 1){
-                                resp.json({
-                                    code:6,
-                                    msg:"收藏成功",
-                                    data:{}
-                                })
-                             }else {
-                                resp.json({
-                                    code:4,
-                                    msg:"收藏失败",
-                                    data:{}
-                                })
-                             } 
-                        }else {
-                            try {
-                                const db = client.db("twelve_weeks")
-                                resUser.colleList.splice(resUser.colleList.indexOf(p.goodId),1)
-                                        const query = {
-                                    userId:p.userId,
-                                }
-                                console.log('删除后的数组',resUser.colleList)
-                                const update = {
-                                    count:resUser.colleList.lenght,
-                                    colleList:resUser.colleList
-                                }
-                                const res = await db.collection("collection").updateOne(query,{
-                                    "$set":update,
-                                },{upsert:true})
-                                console.log('取消收藏',res)
-                                if(res.upsertedCount === 1 || res.modifiedCount === 1) {
-                                    resp.json({
-                                        code:8,
-                                        msg:"取消收藏",
-                                        data:res
-                                    })
-                                }
-                            }catch (e:any){
-                                resp.send({
-                                    code:9,
-                                    msg:e.message,
-                                    data:{}
-                                })
-                            }
-                                
-                        }
-                    })
-                
-            //     // 如果数组长度大于0
-            //     // if(resUser.colleList && resUser.colleList.lenght > 0){
-            //     //     resUser.colleList.forEach(async (e: any) => {
-            //     //         if(e === p.goodId){
-            //     //             // 如果数组里面有这个ID，就代表已经收藏过，取消收藏 删除数组里面指定元素
-            //     //             resUser.colleList.splice(resUser.colleList.indexOf(p.goodId),1)
-            //     //             const query = {
-            //     //                 userId:p.userId,
-            //     //             }
-            //     //             console.log('删除后的数组',resUser.colleList)
-            //     //             const update = {
-            //     //                 count:resUser.colleList.lenght,
-            //     //                 colleList:resUser.colleList
-            //     //             }
-            //     //             const res = await db.collection("collection").updateOne(query,{
-            //     //                 "$set":update,
-            //     //             })
-            //     //             if(res.upsertedCount === 1 || res.modifiedCount === 1) {
-            //     //                 resp.json({
-            //     //                     code:8,
-            //     //                     msg:"取消收藏",
-            //     //                     data:{res}
-            //     //                 })
-            //     //             }
-                            
-            //     //         }else {
-            //     //             // 如果没收藏过就重新PUSH进去
-            //     //             resUser.colleList.push(p.goodId)
-            //     //             const query = {
-            //     //                 userId:p.userId,
-            //     //             }
-            //     //             const update = {
-            //     //                 count:resUser.count+1,
-            //     //                 // colleList:Array.from(new Set(resUser.colleList)) // 数组去重
-            //     //                 colleList:resUser.colleList
-            //     //             }
-            //     //             const res = await db.collection("collection").updateOne(query,{
-            //     //                 "$set":update,
-            //     //             })
-            //     //             if(res.upsertedCount === 1 || res.modifiedCount === 1){
-            //     //                 resp.json({
-            //     //                     code:6,
-            //     //                     msg:"收藏成功",
-            //     //                     data:{}
-            //     //                 })
-            //     //              }else {
-            //     //                 resp.json({
-            //     //                     code:4,
-            //     //                     msg:"收藏失败",
-            //     //                     data:{}
-            //     //                 })
-            //     //              }    
-
-            //     //         }
-            //     //     }) 
-            //     // }else{
-            //     //     // 如果数组不大于0 就是收藏后取消过一次 在冲洗
-            //     //     resUser.colleList.push(p.goodId)
-            //     //     const query = {
-            //     //         userId:p.userId,
-            //     //     }
-            //     //     const update = {
-            //     //         count:resUser.count+1,
-            //     //         // colleList:Array.from(new Set(resUser.colleList)) // 数组去重
-            //     //         colleList:resUser.colleList
-            //     //     }
-            //     //     const res = await db.collection("collection").updateOne(query,{
-            //     //         "$set":update,
-            //     //     })
-            //     //     if(res.upsertedCount === 1 || res.modifiedCount === 1){
-            //     //         resp.json({
-            //     //             code:7,
-            //     //             msg:"收藏成功",
-            //     //             data:{}
-            //     //         })
-            //     //      }else {
-            //     //         resp.json({
-            //     //             code:4,
-            //     //             msg:"收藏失败",
-            //     //             data:{}
-            //     //         })
-            //     //      }    
-            //     // }
-            //     // 如果用户存在 插入数组
-                   
+                    // 如果用户存在就直接push进去 
+                    resUser?.colleList.push(p.goodId) //已经推进去了
+                    const query = {
+                        userId:p.userId,
+                    }
+                    const update = {
+                        count:resUser.count+1,
+                        colleList:resUser.colleList
+                    }
+                    // session 会话已结束？？
+                    const resInsert = await db.collection("collection").updateOne(query,{
+                        "$set":update,
+                    },{upsert:true})
+                    console.log('555',resInsert)
+                    if(resInsert.upsertedCount === 1 || resInsert.modifiedCount === 1){
+                        resp.json({
+                            code:1,
+                            msg:"收藏成功",
+                            data:{}
+                        })
+                     }else {
+                        resp.json({
+                            code:4,
+                            msg:"收藏失败",
+                            data:{}
+                        })
+                     } 
+                    // resUser?.colleList.forEach(async (e: any) => {
+                    //     console.log('666',222)
+                    //     if(e != p.goodId){
+                    //         console.log('666',333)
+                    //         resUser?.colleList.push(p.goodId) //已经推进去了
+                    //         console.log('666',resUser.colleList)
+                    //         const query = {
+                    //             userId:p.userId,
+                    //         }
+                    //         const update = {
+                    //             count:resUser.count+1,
+                    //             colleList:resUser.colleList
+                    //         }
+                    //         // session 会话已结束？？
+                    //         const resInsert = await db.collection("collection").updateOne(query,{
+                    //             "$set":update,
+                    //         },{upsert:true})
+                    //         console.log('555',resInsert)
+                    //         if(resInsert.upsertedCount === 1 || resInsert.modifiedCount === 1){
+                    //             resp.json({
+                    //                 code:6,
+                    //                 msg:"收藏成功",
+                    //                 data:{}
+                    //             })
+                    //          }else {
+                    //             resp.json({
+                    //                 code:4,
+                    //                 msg:"收藏失败",
+                    //                 data:{}
+                    //             })
+                    //          } 
+                    //     }
+                    // })
             }
             
         }catch(e:any){
@@ -756,7 +728,92 @@ export const Collection = async (req: Request, resp: Response) => {
     }
 
 }
-// 取消收藏 
+
+// 关注用户接口
+export const Concern = async (req: Request, resp: Response) => {
+    const p = req.body
+    console.log('5555',p)
+    try {
+        const client = await Connect()
+        try{
+            const db = client.db("twelve_weeks")
+            const query = { //用户ID
+                userId:p.userId
+            }
+            const resUser = await db.collection("concern").findOne(query)
+            console.log('ggagga',resUser)
+            if(!resUser) {
+                // 如果用户不存在 新建数组
+                const concernList: string | any[] = []
+                concernList.push(p.userId1)
+                console.log('推进去',concernList)
+                const insert = {
+                    userId:p.userId,
+                    userName:p.userName,
+                    count:1,
+                    concernList:concernList
+                }
+                const res = await db.collection("concern").insertOne(insert)
+               if(res.acknowledged === true){
+                resp.json({
+                    code:1,
+                    msg:"关注成功",
+                    data:res
+                })
+               }
+            }
+            // 如果用户存在 先判断数组长度
+            else {
+                    // 如果用户存在就直接push进去 
+                    resUser?.concernList.push(p.userId1) //已经推进去了
+                    const query = {
+                        userId:p.userId,
+                    }
+                    const update = {
+                        count:resUser.count+1,
+                        concernList:resUser.concernList
+                    }
+                    // session 会话已结束？？
+                    const resInsert = await db.collection("concern").updateOne(query,{
+                        "$set":update,
+                    },{upsert:true})
+                    console.log('555',resInsert)
+                    if(resInsert.upsertedCount === 1 || resInsert.modifiedCount === 1){
+                        resp.json({
+                            code:1,
+                            msg:"关注成功",
+                            data:{}
+                        })
+                     }else {
+                        resp.json({
+                            code:4,
+                            msg:"关注成功",
+                            data:{}
+                        })
+                     } 
+            }
+            
+        }catch(e:any){
+            resp.send({
+                code:3,
+                msg:e.message,
+                data:{}
+            })
+        }finally{
+            client.close()//关闭数据库
+        }
+        
+    } catch (error:any) {
+        resp.send({
+            code:2,
+            msg:error.message,
+            data:{}
+        })
+    }
+
+}
+
+// 取消收藏  
 export const CancelCollection = async (req: Request, resp: Response) => {
     const p = req.body
     console.log('5555',p)
@@ -768,41 +825,204 @@ export const CancelCollection = async (req: Request, resp: Response) => {
                 userId:p.userId
             }
             const resUser = await db.collection("collection").findOne(query)
-            console.log('ggagga',resUser)
-            // 如果用户存在 先判断数组长度
-                console.log('666',555)
-                resUser?.colleList.forEach(async (e: any,i:any) => {
-                    console.log('666',222)
-                    if(e === p.goodId){
-                        console.log('666',333)
-                        resUser.colleList.splice(i,1) //已经shanchu
-                        console.log('666',resUser.colleList)
-                        const query1 = {
+            console.log('hhha',resUser)
+            resUser?.colleList.splice(resUser?.colleList.indexOf(p.goodId,1))  // 删除其中一个
+            console.log('666',resUser?.colleList)
+                    const query1 = {
+                            // 通过用户ID查询
                             userId:p.userId,
                         }
+                        // 更新collection
                         const update1 = {
-                            count:resUser.count+1,
-                            colleList:resUser.colleList
+                            count:resUser?.count - 1,
+                            colleList:resUser?.colleList
                         }
                         const res = await db.collection("collection").updateOne(query1,{
                             "$set":update1,
-                        })
+                        },{upsert:true})
                         console.log('555',res)
                         if(res.upsertedCount === 1 || res.modifiedCount === 1){
                             resp.json({
-                                code:6,
+                                code:1,
                                 msg:"取消成功",
                                 data:{}
                             })
                          }else {
                             resp.json({
                                 code:4,
-                                msg:"取消成功",
+                                msg:"取消失败",
                                 data:{}
                             })
                          } 
-                    }
-                })
+               
+        }catch(e:any){
+            resp.send({
+                code:3,
+                msg:e.message,
+                data:{}
+            })
+        }finally{
+            client.close()//关闭数据库
+        }
+        
+    } catch (error:any) {
+        resp.send({
+            code:2,
+            msg:error.message,
+            data:{}
+        })
+    }
+
+}
+
+// 取消关注 CancelConcern
+export const CancelConcern = async (req: Request, resp: Response) => {
+    const p = req.body
+    console.log('5555',p)
+    try {
+        const client = await Connect()
+        try{
+            const db = client.db("twelve_weeks")
+            const query = { //用户ID
+                userId:p.userId
+            }
+            const resUser = await db.collection("concern").findOne(query)
+            console.log('hhha',resUser)
+            resUser?.concernList.splice(resUser?.concernList.indexOf(p.goodId,1))  // 删除其中一个
+            console.log('666',resUser?.concernList)
+                    const query1 = {
+                            // 通过用户ID查询
+                            userId:p.userId,
+                        }
+                        // 更新collection
+                        const update1 = {
+                            count:resUser?.count - 1,
+                            concernList:resUser?.concernList
+                        }
+                        const res = await db.collection("concern").updateOne(query1,{
+                            "$set":update1,
+                        },{upsert:true})
+                        if(res.upsertedCount === 1 || res.modifiedCount === 1){
+                            resp.json({
+                                code:1,
+                                msg:"取消成功",
+                                data:{}
+                            })
+                         }else {
+                            resp.json({
+                                code:4,
+                                msg:"取消失败",
+                                data:{}
+                            })
+                         } 
+               
+        }catch(e:any){
+            resp.send({
+                code:3,
+                msg:e.message,
+                data:{}
+            })
+        }finally{
+            client.close()//关闭数据库
+        }
+        
+    } catch (error:any) {
+        resp.send({
+            code:2,
+            msg:error.message,
+            data:{}
+        })
+    }
+
+}
+// 查询收藏数据接口 根据用户的ID判断查询
+export const QueryCollectData = async (req: Request, resp: Response) => {
+    const p = req.body
+    try {
+        const client = await Connect()
+        try{
+            const db = client.db("twelve_weeks")
+            const query = { //用户ID
+                userId:p.userId
+            }
+            const res = await db.collection("collection").findOne(query)
+            resp.json({
+                code:1,
+                msg:"查询成功",
+                data:res
+            })
+        }catch(e:any){
+            resp.send({
+                code:3,
+                msg:e.message,
+                data:{}
+            })
+        }finally{
+            client.close()//关闭数据库
+        }
+        
+    } catch (error:any) {
+        resp.send({
+            code:2,
+            msg:error.message,
+            data:{}
+        })
+    }
+
+}
+
+// 查询点赞数据接口 根据用户的ID判断查询 
+export const QueryLickData = async (req: Request, resp: Response) => {
+    const p = req.body
+    try {
+        const client = await Connect()
+        try{
+            const db = client.db("twelve_weeks")
+            const query = { //用户ID
+                userId:p.userId
+            }
+            const res = await db.collection("like").findOne(query)
+            resp.json({
+                code:1,
+                msg:"查询成功",
+                data:res
+            })
+        }catch(e:any){
+            resp.send({
+                code:3,
+                msg:e.message,
+                data:{}
+            })
+        }finally{
+            client.close()//关闭数据库
+        }
+        
+    } catch (error:any) {
+        resp.send({
+            code:2,
+            msg:error.message,
+            data:{}
+        })
+    }
+
+}
+
+// 查询关注博主数据接口 根据用户的ID判断查询 QueryConcernData
+export const QueryConcernData = async (req: Request, resp: Response) => {
+    const p = req.body
+    try {
+        const client = await Connect()
+        try{
+            const db = client.db("twelve_weeks")
+            const query = { //用户ID
+                userId:p.userId
+            }
+            const res = await db.collection("concern").findOne(query)
+            resp.json({
+                code:1,
+                msg:"查询成功",
+                data:res
+            })
         }catch(e:any){
             resp.send({
                 code:3,
@@ -838,9 +1058,9 @@ export const Like = async (req: Request, resp: Response) => {
             console.log('ggagga',resUser)
             if(!resUser) {
                 // 如果用户不存在 新建数组
-                const colleList: string | any[] = []
-                colleList.push(p.goodId)
-                console.log('推进去',colleList)
+                const likeList: string | any[] = []
+                likeList.push(p.goodId)
+                console.log('推进去',likeList)
                 const query = {
                     userId:p.userId,
                 }
@@ -848,7 +1068,7 @@ export const Like = async (req: Request, resp: Response) => {
                     userId:p.userId,
                     userName:p.userName,
                     count:1,
-                    likeList:colleList
+                    likeList:likeList
                 }
                 const res = await db.collection("like").insertOne(insert)
                if(res.acknowledged === true){
@@ -859,8 +1079,351 @@ export const Like = async (req: Request, resp: Response) => {
                 })
                }
             }else {
-                resUser.collection.forEach()
+                 // 如果用户存在就push进去
+                 resUser?.likeList.push(p.goodId) //已经推进去了
+                 const query = {
+                    userId:p.userId,
+                }
+                const update = {
+                    count:resUser.count+1,
+                    likeList:resUser.likeList
+                }
+                // session 会话已结束？？
+                const resInsert = await db.collection("like").updateOne(query,{
+                    "$set":update,
+                },{upsert:true})
+                console.log('555',resInsert)
+                if(resInsert.upsertedCount === 1 || resInsert.modifiedCount === 1){
+                    resp.json({
+                        code:1,
+                        msg:"点赞成功",
+                        data:{}
+                    })
+                 }else {
+                    resp.json({
+                        code:4,
+                        msg:"点赞成功",
+                        data:{}
+                    })
+                 }
             }
+            
+        }catch(e:any){
+            resp.send({
+                code:3,
+                msg:e.message,
+                data:{}
+            })
+        }finally{
+            client.close()//关闭数据库
+        }
+        
+    } catch (error:any) {
+        resp.send({
+            code:2,
+            msg:error.message,
+            data:{}
+        })
+    }
+
+}
+
+// 作品点赞成功后 
+export const UpdateLike = async (req: Request, resp: Response) => {
+    const p = req.body
+    console.log('5555',p)
+    try {
+        const client = await Connect()
+        try{
+            const db = client.db("twelve_weeks")
+            const query = { //用户ID
+                id:p.goodId
+            }
+            const resUser = await db.collection("goods").findOne(query)
+            const update = {
+                likeCount:resUser?.likeCount + 1
+            }
+            const res = await db.collection("goods").updateOne(query,{
+                '$set':update
+            })
+            resp.send({
+                code:3,
+                msg:'加入成功',
+                data:{}
+            })
+            
+        }catch(e:any){
+            resp.send({
+                code:3,
+                msg:e.message,
+                data:{}
+            })
+        }finally{
+            client.close()//关闭数据库
+        }
+        
+    } catch (error:any) {
+        resp.send({
+            code:2,
+            msg:error.message,
+            data:{}
+        })
+    }
+
+}
+
+// 关注用户之后
+// export const UpdateConcern = async (req: Request, resp: Response) => {
+//     const p = req.body
+//     console.log('5555',p)
+//     try {
+//         const client = await Connect()
+//         try{
+//             const db = client.db("twelve_weeks")
+//             const query = { //用户ID
+//                 id:p.userId1
+//             }
+//             const resUser = await db.collection("goods").findOne(query)
+//             const update = {
+//                 likeCount:resUser?.likeCount + 1
+//             }
+//             const res = await db.collection("goods").updateOne(query,{
+//                 '$set':update
+//             })
+//             resp.send({
+//                 code:3,
+//                 msg:'加入成功',
+//                 data:{}
+//             })
+            
+//         }catch(e:any){
+//             resp.send({
+//                 code:3,
+//                 msg:e.message,
+//                 data:{}
+//             })
+//         }finally{
+//             client.close()//关闭数据库
+//         }
+        
+//     } catch (error:any) {
+//         resp.send({
+//             code:2,
+//             msg:error.message,
+//             data:{}
+//         })
+//     }
+
+// }
+
+// 作品收藏成功后 Updatecollec
+export const Updatecollec = async (req: Request, resp: Response) => {
+    const p = req.body
+    console.log('5555',p)
+    try {
+        const client = await Connect()
+        try{
+            const db = client.db("twelve_weeks")
+            const query = { //用户ID
+                id:p.goodId
+            }
+            const resUser = await db.collection("goods").findOne(query)
+            const update = {
+                collectionCount:resUser?.collectionCount + 1
+            }
+            const res = await db.collection("goods").updateOne(query,{
+                '$set':update
+            })
+            resp.send({
+                code:3,
+                msg:'加入成功',
+                data:{}
+            })
+            
+        }catch(e:any){
+            resp.send({
+                code:3,
+                msg:e.message,
+                data:{}
+            })
+        }finally{
+            client.close()//关闭数据库
+        }
+        
+    } catch (error:any) {
+        resp.send({
+            code:2,
+            msg:error.message,
+            data:{}
+        })
+    }
+
+}
+// 作品取消收藏成功后
+export const UpdateDelcollec = async (req: Request, resp: Response) => {
+    const p = req.body
+    console.log('5555',p)
+    try {
+        const client = await Connect()
+        try{
+            const db = client.db("twelve_weeks")
+            const query = { //用户ID
+                id:p.goodId
+            }
+            const resUser = await db.collection("goods").findOne(query)
+            const update = {
+                collectionCount:resUser?.collectionCount - 1
+            }
+            const res = await db.collection("goods").updateOne(query,{
+                '$set':update
+            })
+            resp.send({
+                code:3,
+                msg:'加入成功',
+                data:{}
+            })
+            
+        }catch(e:any){
+            resp.send({
+                code:3,
+                msg:e.message,
+                data:{}
+            })
+        }finally{
+            client.close()//关闭数据库
+        }
+        
+    } catch (error:any) {
+        resp.send({
+            code:2,
+            msg:error.message,
+            data:{}
+        })
+    }
+
+}
+// 作品取消点赞成功后
+export const UpdateDelLike = async (req: Request, resp: Response) => {
+    const p = req.body
+    console.log('5555',p)
+    try {
+        const client = await Connect()
+        try{
+            const db = client.db("twelve_weeks")
+            const query = { //用户ID
+                id:p.goodId
+            }
+            const resUser = await db.collection("goods").findOne(query)
+            const update = {
+                likeCount:resUser?.likeCount - 1
+            }
+            const res = await db.collection("goods").updateOne(query,{
+                '$set':update
+            })
+            resp.send({
+                code:3,
+                msg:'加入成功',
+                data:{}
+            })
+            
+        }catch(e:any){
+            resp.send({
+                code:3,
+                msg:e.message,
+                data:{}
+            })
+        }finally{
+            client.close()//关闭数据库
+        }
+        
+    } catch (error:any) {
+        resp.send({
+            code:2,
+            msg:error.message,
+            data:{}
+        })
+    }
+
+}
+
+
+
+// 作品取消点赞
+export const CancelLike = async (req: Request, resp: Response) => {
+    const p = req.body
+    console.log('5555',p)
+    try {
+        const client = await Connect()
+        try{
+            const db = client.db("twelve_weeks")
+            const query = { //用户ID
+                userId:p.userId
+            }
+            const resUser = await db.collection("like").findOne(query)
+            resUser?.likeList.splice(resUser.likeList.indexOf(p.goodId),1)
+            resUser?.colleList.splice(resUser?.colleList.indexOf(p.goodId,1))  // 删除其中一个
+            console.log('555',resUser?.likeList)
+            const query1 = {
+                // 通过用户ID查询
+                userId:p.userId,
+            }
+            // 更新collection
+            const update1 = {
+                count:resUser?.count - 1,
+                likeList:resUser?.likeList
+            }
+            const res = await db.collection("like").updateOne(query1,{
+                "$set":update1,
+            },{upsert:true})
+            console.log('555',res)
+            if(res.upsertedCount === 1 || res.modifiedCount === 1){
+                resp.json({
+                    code:1,
+                    msg:"取消成功",
+                    data:{}
+                })
+             }else {
+                resp.json({
+                    code:4,
+                    msg:"取消失败",
+                    data:{}
+                })
+             } 
+            // console.log('ggagga',resUser)
+            // resUser?.likeList.forEach(async (e: any,i:any) => {
+            //     console.log('666',222)
+            //     if(e === p.goodId){
+            //         console.log('666',333)
+            //         resUser.likeList.splice(i,1) //如果有相同的作品ID删除那个
+            //         console.log('666',resUser.likeList)
+            //         const query1 = {
+            //             // 通过用户ID查询
+            //             userId:p.userId,
+            //         }
+            //         // 更新collection
+            //         const update1 = {
+            //             count:resUser.count - 1,
+            //             likeList:resUser.likeList
+            //         }
+            //         const res = await db.collection("like").updateOne(query1,{
+            //             "$set":update1,
+            //         },{upsert:true})
+            //         console.log('555',res)
+            //         if(res.upsertedCount === 1 || res.modifiedCount === 1){
+            //             resp.json({
+            //                 code:6,
+            //                 msg:"取消成功",
+            //                 data:{}
+            //             })
+            //          }else {
+            //             resp.json({
+            //                 code:4,
+            //                 msg:"取消失败",
+            //                 data:{}
+            //             })
+            //          } 
+            //     }
+            // })
             
         }catch(e:any){
             resp.send({
@@ -1935,7 +2498,7 @@ export const AddActiveInfo = async (req:Request,resp:Response) => {
     }
 }
 
-// 修改分类
+// 修改分类  目前不稳定
 export const UpdateCate = async (req:Request,resp:Response) => {
     const p = req.body;
     console.log('chuandi 参数过来',p)

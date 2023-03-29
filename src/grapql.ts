@@ -24,6 +24,7 @@ type Mutation {
     delGood (id:String!):ResData
     delActive (id:String!):ResData
     delUser (id:String!):ResData
+    delCate (id:String!):ResData
 }
 
 type ResData {
@@ -136,10 +137,11 @@ const resolvers = {
     Mutation:{
         delGood:gr.delGood,
         delActive:gr.delActive,
-        delUser:gr.delUser
+        delUser:gr.delUser,
+        delCate:gr.delCate
     },
     Good:{
-        imgpath:(parent:any) =>parent.imgpath.indexOf("http") >= 0 ? parent.imgpath : `${protocal}://${ip}:${port}${imgs_url}/` + parent.imgpath,
+        imgpath:(parent:any) => parent.imgpath.indexOf("http") >= 0 ? parent.imgpath : `${protocal}://${ip}:${port}${imgs_url}/` + parent.imgpath,
         imgpathDetail1: (parent: any) => `http://${ip}:${port}${imgs_url}/` + parent.imgpathDetail1,
         imgpathDetail2: (parent: any) => `http://${ip}:${port}${imgs_url}/` + parent.imgpathDetail2,
         imgpathDetail3: (parent: any) => `http://${ip}:${port}${imgs_url}/` + parent.imgpathDetail3,
