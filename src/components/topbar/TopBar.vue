@@ -33,7 +33,6 @@ watch(searchContent, curr => {
 <template>
     <div class="top-bar">
         <div class="left">
-            <!-- 为什么在外面套一层DIV 比较可控 -->
             <slot name="left"></slot>
         </div>
         <div class="middle">
@@ -50,8 +49,6 @@ watch(searchContent, curr => {
                     </template>
 
                 </a-input>
-                
-
             </slot>
         </div>
         <div class="right">

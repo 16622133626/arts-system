@@ -1,177 +1,317 @@
 <script setup>
-import { ref, inject, computed } from "vue"
-import { useRouter } from "vue-router"
-import { useState } from "@/store/pageDirection"
-import TopBar from "@/components/topbar/TopBar.vue"
-import Content from "@/components/content/Content.vue"
-import { getItem } from "@/kits/LocalStorageKit"
-import { gql } from "@/kits/HttpKit"
-import {useState as useOrderState} from "@/store/order.js"
+import { ref, inject, computed } from "vue";
+import { useRouter } from "vue-router";
+import { useState } from "@/store/pageDirection";
+import TopBar from "@/components/topbar/TopBar.vue";
+import Content from "@/components/content/Content.vue";
+import { getItem } from "@/kits/LocalStorageKit";
+import { gql } from "@/kits/HttpKit";
+import { useState as useOrderState } from "@/store/order.js";
 
-const message = inject("$message")
-const router = useRouter()
-const state = useState()
-const orderState = useOrderState()
-const order = ref([])
-//双向绑定的变量
-let start = 0, count = 5
+const message = inject("$message");
+const router = useRouter();
+const state = useState();
+const orderState = useOrderState();
+const order = ref([]);
 
+const categorys = ref("");
+const categorys1 = ref("");
+const categorys2 = ref("")
+const topTabs = [
+  {
+    value: '1',
+    name: "头条",
+  },
+  {
+    value: '2',
+    name: "快讯",
+  },
+  {
+    value: '3',
+    name: "精编",
+  },
+];
 
-const fetchData = async () => {
-    const dictId = "order_status"
-    const userId = getItem("userId")
-    const token = getItem("token")
+const initData = async (x) => {
+  const dictId = "news_status";
+  const types = '["1"]';
+// const types = [x];
+console.log('type',types)
+  const start = 0,
+    count = 10;
+  const params = {
+    query: `
+                {
+                  categorys (id:"${dictId}",type:${types}){
+                                     id
+                                     name
+                                     news (start:${start},count:${count}) {
+                                            id
+                                                  title
+                                                  intro
+                                                  findImgpath
+                                                  content
+                                                  addTime
+                                                  status (id:"news_status") {
+                                              id
+                                                    name
+                                                  }
+                                                }
+                                              }
+                }`,
+  };
+  try {
+    const res = await gql(params);
+    console.log('111',res);
+    // homeImgs.value = res.data.homeImgs
+    categorys.value = res.data.categorys;
+    return { code: "ok" };
+  } catch (e) {
+    message.warning(e.message);
+    return { code: "failed" };
+  }
+};
 
-    const params = {
-        token,
-        userId,
-        query: `
-            {
-                orderList (userId:"${userId}",start:${start},count:${count}) {
+initData()
+
+const fetchData = async (x) => {
+  const dictId = "news_status";
+  const types = '["2"]';
+  const start = 0,
+    count = 10;
+  const params = {
+    query: `
+                {
+                  categorys (id:"${dictId}",type:${types}){
                     id
-                    userId
-                    sysdate
-                    status (id:"${dictId}"){
-                        id
-                        name
-                    }
-                    list {
-                        id
-                        name
-                        price
-                        count
-                        imgpath
-                    }
-                }
-            }
-        `
-    }
-    try {
-        const res = await gql(params)
-        // console.log(res.data.orderList.length)
-        order.value = order.value.concat(res.data.orderList)
-        start += res.data.orderList.length
-        return { code: "ok" }
-    } catch (e) {
-        message.warning(e.message)
-        return { code: "failed" }
-    }
-}
+                                     name
+                                     news (start:${start},count:${count}) {
+                                            id
+                                                  title
+                                                  intro
+                                                  findImgpath
+                                                  content
+                                                  addTime
+                                                  status (id:"news_status") {
+                                              id
+                                                    name
+                                                  }
+                                                }
+                                              }
+                }`,
+  };
+  try {
+    const res = await gql(params);
+    categorys1.value = res.data.categorys;
+    console.log('222',res);
+    return { code: "ok" };
+  } catch (e) {
+    message.warning(e.message);
+    return { code: "failed" };
+  }
+};
 
 fetchData()
 
+const fetchData3 = async (x) => {
+  const dictId = "news_status";
+  const types = '["3"]';
+  const start = 0,
+    count = 10;
+  const params = {
+    query: `
+                {
+                  categorys (id:"${dictId}",type:${types}){
+                    id
+                                     name
+                                     news (start:${start},count:${count}) {
+                                            id
+                                                  title
+                                                  intro
+                                                  findImgpath
+                                                  content
+                                                  addTime
+                                                  status (id:"news_status") {
+                                              id
+                                                    name
+                                                  }
+                                                }
+                                              }
+                }`,
+  };
+  try {
+    const res = await gql(params);
+    // homeImgs.value = res.data.homeImgs
+    categorys2.value = res.data.categorys;
+    console.log('333',res);
+    return { code: "ok" };
+  } catch (e) {
+    message.warning(e.message);
+    return { code: "failed" };
+  }
+};
 
+fetchData3()
 
 const goto = (path) => {
-    state.setDirection("forward")
-    router.push({ path })
-}
+  state.setDirection("forward");
+  router.push({ path });
+};
 
 const sumPrice = computed(() => {
-    return (item) => {
-        return item.list.reduce((acc, v) => acc + v.price * v.count, 0)
-    }
-})
+  return (item) => {
+    return item.list.reduce((acc, v) => acc + v.price * v.count, 0);
+  };
+});
 
 const orderId = computed(() => {
-    return (id) => {
-        return id.substring(id.length - 6, id.length)
-    }
-})
-
+  return (id) => {
+    return id.substring(id.length - 6, id.length);
+  };
+});
 
 const goDetail = (orderDetail) => {
-    orderState.setOrderDetail(orderDetail)
-    goto("/orderdetail")
+  orderState.setOrderDetail(orderDetail);
+  goto("/orderdetail");
+}; 
+
+const gotoDetail = (id,status) => {
+    state.setDirection("forward")  //页面跳转到明细页面
+    router.push({
+        name: "newsdetail",
+        params: {
+            id: id,
+            type:status
+        }
+    })
 }
 
 const statusStyle = computed(() => {
-    return (statusId) => {
-        const res = {}
-        switch (statusId) {
-            case "1":
-                res.color = "#919100"
-                break;
-            case "2":
-                res.color = "red"
-                break;
+  return (statusId) => {
+    const res = {};
+    switch (statusId) {
+      case "1":
+        res.color = "#919100";
+        break;
+      case "2":
+        res.color = "red";
+        break;
 
-            case "3":
-                res.color = "gray"
-                break;
+      case "3":
+        res.color = "gray";
+        break;
 
-            case "4":
-                res.color = "pink"
-                break;
+      case "4":
+        res.color = "pink";
+        break;
 
-            case "5":
-                res.color = "pueple"
-                break;
+      case "5":
+        res.color = "pueple";
+        break;
 
-            default:
-                break;
-        }
-        return res
+      default:
+        break;
     }
-})
-
+    return res;
+  };
+});
 </script>
-  
+
 <template>
-    <div>
-        <top-bar style="box-shadow:unset;">
-        </top-bar>
-        <content :hasTabBar="true" :pull="true" :refresFunc="fetchData">
-            <a-list :data-source="order">
-                <template #renderItem="{item}">
-                    <a-list-item @click="goDetail(item)">
-                        <div class="order-item">
-                            <div class="order-row">
-                                <div>订单状态</div>
-                                <div class="order-status" :style="statusStyle(item.status.id)">{{item.status.name}}
-                                </div>
-                            </div>
-                            <div class="order-row">
-                                <div>单号：{{orderId(item.id)}}</div>
-                                <div>{{item.sysdate}}</div>
-                            </div>
-                            <div class="order-row">
-                                <div>购买数量</div>
-                                <div>{{item.list.length}}</div>
-                            </div>
-                            <div class="order-row">
-                                <div>订单总价</div>
-                                <div style="color:rgb(250,100,0)">￥：{{sumPrice(item)}}</div>
-                            </div>
-                        </div>
-                    </a-list-item>
-                </template>
-            </a-list>
+  <div>
+    <TopBar>
+      <template v-slot:middle>
+        <div class="top-title">发现</div>
+      </template>
+    </TopBar>
+
+    <van-tabs swipeable>
+      <van-tab v-for="item in topTabs" :title="item.name">
+        <content v-if="item.name === '头条'" :hasTabBar="true" :pull="true" :refresFunc="initData">
+          <div v-for="item in categorys">
+            <div v-for="items in item.news">
+              <div class="item-news" @click="gotoDetail(items.id,items.status.id)">
+                <img style=" margin-top: 2px;width:80px;height:80px;" :src="items.findImgpath" alt="">
+                <div class="new-intro">
+                  <div style="color:black;font-size:16px;">{{ items.title }}</div>
+                  <div style="margin-top: 5px;text-overflow:ellipsis;">{{ items.intro }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
         </content>
-    </div>
+
+        <content v-if="item.name === '快讯'" :hasTabBar="true" :pull="true" :refresFunc="fetchData">
+          <div v-for="item in categorys1">
+            <div v-for="items in item.news">
+              <div class="item-news" @click="gotoDetail(items.id,items.status.id)">
+                <img style=" margin-top: 2px;width:80px;height:80px;" :src="items.findImgpath" alt="">
+                <div class="new-intro">
+                  <div style="color:black;font-size:16px;">{{ items.title }}</div>
+                  <div style="margin-top: 5px;text-overflow:ellipsis;">{{ items.intro }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </content>
+
+        <content v-if="item.name === '精编'" :hasTabBar="true" :pull="true" :refresFunc="fetchData3">
+          <div v-for="item in categorys2">
+            <div v-for="items in item.news">
+              <div class="item-news"  @click="gotoDetail(items.id,items.status.id)">
+                <img style=" margin-top: 2px;width:80px;height:80px;" :src="items.findImgpath" alt="">
+                <div class="new-intro">
+                  <div style="color:black;font-size:16px;">{{ items.title }}</div>
+                  <div style="margin-top: 5px;text-overflow:ellipsis;">{{ items.intro }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </content>
+      </van-tab>
+    </van-tabs>
+  </div>
 </template>
-    
+
 <style scoped>
 .order-item {
-    /* display:flex; */
-    width: 100%;
-    font-size:13px;
-    color:rgb(0 0 0 / 0.5);
-    padding:6px;
-    box-sizing:border-box;
-    box-shadow:0px 1px 8px rgb( 0 0 0 /0.1);
-    border-radius:15px;
+  /* display:flex; */
+  width: 100%;
+  font-size: 13px;
+  color: rgb(0 0 0 / 0.5);
+  padding: 6px;
+  box-sizing: border-box;
+  box-shadow: 0px 1px 8px rgb(0 0 0 /0.1);
+  border-radius: 15px;
+}
 
+.top-title {
+    font-weight: 600;
+    font-size: 20px;
+    text-align: center;
 }
 
 .order-row {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 5px;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 5px;
 }
 
 .order-status {
-    font-size: 16px;
-    font-weight: bold;
+  font-size: 16px;
+  font-weight: bold;
+}
+.item-news {
+  width: 100%;
+  height: 100px;
+  border-bottom-style: solid;
+  border-width: 2px;
+  border-bottom-color: #a09e9e;
+  margin-top: 12px;
+  display: flex;
+}
+.new-intro {
+  margin-left: 10px;
+  overflow:hidden;
 }
 </style>

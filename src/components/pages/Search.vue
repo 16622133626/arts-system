@@ -81,6 +81,15 @@ const quickSearch = (contentFromTag) => {
           <div class="histoty-search">
            <div @click="quickSearch(item)" class="history-search-item" v-for="item in historySearch">{{item}}</div>    
         </div>
+
+        <!-- <div class="title-bar">
+            <div class="title">热门搜索</div>
+            <div class="clear" @click="clearHistry">全部清除</div>
+            
+          </div> -->
+          <!-- <div class="histoty-search">
+           <div @click="quickSearch(item)" class="history-search-item" v-for="item in historySearch">{{item}}</div>    
+        </div> -->
         </content>
         <!-- 最新的搜索内容 -->
     </div>

@@ -6,6 +6,7 @@ import Carousel from 'ant-design-vue/lib/carousel'
 import message from "ant-design-vue/lib/message"
 import Avatar from 'ant-design-vue/lib/avatar'
 import Upload from 'ant-design-vue/lib/upload'
+import Radio from 'ant-design-vue/lib/radio'
 import Popconfirm from 'ant-design-vue/lib/popconfirm'
 import ConfigProvider from "ant-design-vue/lib/config-provider"
 import Skeleton from "ant-design-vue/lib/skeleton"
@@ -26,6 +27,7 @@ export const useAntd = (app) => {
     app.use(Input)
     app.use(Spin)
     app.use(Form)
+    app.use(Radio)
     app.use(Button)
     app.use(Carousel)
     app.use(Skeleton)

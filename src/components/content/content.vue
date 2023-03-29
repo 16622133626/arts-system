@@ -19,8 +19,9 @@ const props = defineProps({
 const loading = ref(false)
 const msg = ref("下拉刷新")
 let touchstart = 0, distance = 0
-
+// 标题栏高度
 const topbar_height = 65
+// 导航栏高度
 const tabbar_height = 58
 const sub_height = props.hasTabBar ? (topbar_height + tabbar_height) + "px" : topbar_height + "px"
 onMounted(() => {
@@ -35,7 +36,7 @@ onMounted(() => {
     //touchstart 获取手指刚触碰屏幕时的事件，这个事件里有手指位于屏幕的坐标
     app.addEventListener("touchstart", e => {
         if (loading.value) {  //loading为true正在加载中
-            //防止冒泡操作
+            //阻止冒泡
             e.stopPropagation()
             return
         }
@@ -69,8 +70,7 @@ onMounted(() => {
         //防止用户没有手指移动 直接点击后放开的场景
         if (distance === 0) return
 
-        msg.value = "正在加载"
-        //组件要有共用性和复用性 
+        msg.value = "正在加载" 
             props.refresFunc().then(res => {
             console.log("模拟请求的结果：",res)
             if (res.code === "ok") {

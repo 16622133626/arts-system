@@ -12,13 +12,16 @@ export const useState = defineStore("cart", {
         addCart(p) {
             return myHttp("/api/addcart", p).then((res) => {
                 if (res.code === 1) {
+                    console.log('this.cart',this.cart)
                      this.cart.forEach(item => {
                         if (item.id === p.good.id) {
-                            if (p.ifIncrease) {
-                                item.count++
-                            } else {
-                                item.count--
-                            }
+                            
+                    console.log('this.cart',item.id)
+                            // if (p.ifIncrease) {
+                            //     item.collectionCount++
+                            // } else {
+                            //     item.collectionCount--
+                            // }
                         }
                     })
                 }
@@ -70,42 +73,36 @@ export const useState = defineStore("cart", {
                 }
             }
         },
-        async createOrder() {
+        async createOrder(id) {
             const token = getItem("token")
             const userId = getItem("userId")
-            const cartChecked = this.cart.filter(item => item.checked)
-
+            // const cartChecked = this.cart.filter(item => item.checked)
+            const AbtivesId = id
             const p = {
                 token,
                 userId,
-                order: {
-                    userId,
-                    status: "1",
-                    list: cartChecked.map(item => {
-                        delete item.checked
-                        return item
-                    })
-                }
+                id,
+                list:[AbtivesId] 
             }
             const res = await myHttp("/api/createorder", p)
-            if (res.code === 1) {
-                const removeCartRes = await myHttp("/api/removecart", {
-                    userId,
-                    token,
-                    cart: cartChecked
-                })
-                if (removeCartRes.code === 1) {
-                    this.cart = this.cart.filter(item => {
-                        for (const c of cartChecked) {
-                            if (item.id === c.id) {
-                                return false
-                            }
-                        }
-                        return true
-                    })
-                }
+            // if (res.code === 1) {
+            //     const removeCartRes = await myHttp("/api/removecart", {
+            //         userId,
+            //         token,
+            //         cart: cartChecked
+            //     })
+            //     if (removeCartRes.code === 1) {
+            //         this.cart = this.cart.filter(item => {
+            //             for (const c of cartChecked) {
+            //                 if (item.id === c.id) {
+            //                     return false
+            //                 }
+            //             }
+            //             return true
+            //         })
+            //     }
 
-            }
+            // }
             return res
 
         }

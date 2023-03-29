@@ -19,13 +19,13 @@ import axios from "axios"
 const ip = "127.0.0.1"
 // const ip = '192.168.1.101'
 // const ip = '10.2.71.189'
-const port = 3000
+const port = 4000
 export const baseURL = `http://${ip}:${port}`
 const instance = axios.create({
     baseURL,
     timeout:5000,    //超时时间
     headers:{
-        "Content-Type":"application/json"
+        "Content-Type":"application/json",
     }
 })
 

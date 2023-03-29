@@ -59,7 +59,6 @@
                 <a-button size="large" type="primary" @click="buy" block>退款 </a-button>
             </footer-bar-button>
         </footer-bar>
-            
         </div>
     </template>
 <style scoped>

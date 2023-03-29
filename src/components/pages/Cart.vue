@@ -26,40 +26,6 @@ const initData = async () => {
 }
 
 const buy =async () => {
-    //订单的数据结构
-    //主表 id sysdate status userId
-    //子表 subId mainId goodid price count imgpath name
-  /*
-        订单的数据结构
-        主表 id sysdate status userId 
-        子表 subId mainId goodid price count imgpath name 
-        文本型数据库
-
-        collection order 
-
-        {
-            id,
-            sysdate,
-            status,
-            userId,
-            list:[
-                {
-                   goodid
-                   price
-                   count
-                   imgpath
-                   name 
-                },
-                {
-                   goodid
-                   price
-                   count
-                   imgpath
-                   name 
-                },
-            ]
-        }
-    */
     try {
         const res = await cartState.createOrder()
         if(res.code === 1){

@@ -26,7 +26,7 @@ const back = () => {
 const handleChange = res => {
 //正在传的时候中间件没走完，传成功之后走switch语句分支
     if (res.file.status !== "uploading") {
-        console.log(res.file)
+        console.log('555',res.file)
     } else if (res.file.status === "done") {
         switch (res.file.response.code) {
             case 1:
@@ -78,7 +78,7 @@ const handleChange = res => {
                 <a-upload :data="data" name="file" :action="action" @change="handleChange">
                     <a-button size="large" style="width:300px;">
                         <upload-outlined></upload-outlined>
-                        Click to Upload
+                        上传头像
                     </a-button>
                 </a-upload>
             </div>

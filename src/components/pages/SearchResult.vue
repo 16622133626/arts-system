@@ -2,7 +2,8 @@
 //先引入
 import { ref, inject } from "vue"
 import TopBar from "@/components/topbar/TopBar.vue";
-import ProductCard from "@/components/product/ProductCard.vue"
+// import ProductCard from "@/components/product/ProductCard.vue"
+import ProductCard from "@/components/product/ProductCardVertical.vue"
 import Content from "@/components/content/content.vue"
 import { useRouter, useRoute } from "vue-router"
 import { useState } from "@/store/pageDirection"
@@ -69,14 +70,13 @@ const searchData = async (query) => {
             {
                 goods (name:"${query}",start:${start},count:${count}) {
                         id
-                        count
+                        likeCount
                         type (id:"${dictId}"){
                             name
                             id
                         }
                         name
                         gooddesc
-                        price
                         imgpath         
                   }
             }
@@ -139,18 +139,20 @@ searchData(route_query_searchContent)
             </template>
         </top-bar>
         <content :refresFunc="refresh" :pull="true">
-            <div class="title">有{{data.length}}个商品符合要求</div>
-            <a-list :data-source="data">
-                <template #renderItem="{item}">
-                    <product-card :product="item"></product-card>
-                </template>
+            <!-- <div class="title">有{{data.length}}个商品符合要求</div> -->
+            <!-- <a-list :data-source="data"> -->
+                <div style="display: flex;flex-wrap: wrap;">
+                    <template v-for="item in data">
+                       <product-card :product="item" style="margin-left: 2vw;"></product-card>
+                   </template>
+                </div>
                 <template #loadMore>
                     <div v-if="data.length > 0" :style="{ textAlign: 'center', marginTop: '12px', height: '32px', lineHeight: '32px' }">
                         <a-spin v-if="loadingMore"></a-spin> 
                         <a-button v-else style="color:#7f7f7f;border: unset;" @click="onLoadMore">加载更多</a-button>
                     </div>
                 </template>
-            </a-list>
+            <!-- </a-list> -->
 
         </content>
 

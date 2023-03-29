@@ -4,6 +4,8 @@ import { useRouter } from "vue-router";
 import { useState } from "@/store/pageDirection";
 import TopBar from "@/components/topbar/TopBar.vue";
 import Content from "@/components/content/Content.vue";
+import { showConfirmDialog } from 'vant';
+import { myHttp } from "@/kits/HttpKit"
 import {
   BellOutlined,
   UserOutlined,
@@ -13,8 +15,15 @@ import { getItem, clearItem } from "@/kits/LocalStorageKit";
 import Modal from "ant-design-vue/lib/modal";
 
 const message = inject("$message");
+const userWork = ref([])
+const collectList = ref([])
+const AllConcern = ref([])
+const likeList = ref([])
 const router = useRouter();
 const state = useState();
+const showLogout = ref(
+  getItem("token") && getItem("token") !== "" ? true : false
+);
 //双向绑定的变量
 const loginStatus = ref(
   getItem("token") && getItem("token") !== "" ? true : false
@@ -27,19 +36,14 @@ const avatar = ref(
 );
 
 //如果登录账号，显示这些信息 否则为空
-const menus = ref(
-  loginStatus.value
-    ? [
-        { name: "作品管理", path: "/blankpage" },
-        { name: "我的资料", path: "/blankpage" },
-        { name: "合作联系", path: "/blankpage" },
-        { name: "我的点赞", path: "/blankpage" },
-        { name: "我的收藏", path: "/blankpage" },
-        { name: "历史足迹", path: "/blankpage" },
+const menus = ref([
+        { name: "我的作品", path: "/thismywork" },
+        { name: "个人信息", path: "/component" },
+        { name: "我的点赞", path: "/like" },
+        { name: "我的收藏", path: "/collet" },
+        { name: "历史足迹", path: "/history" },
         { name: "版本更新", path: "/version" },
-        // { name: "退出登录", path: "/logout" },
       ]
-    : []
 );
 
 const fetchData = async () => {
@@ -61,31 +65,115 @@ const goto = (path) => {
   }
 };
 
+
 const logout = () => {
-  Modal.confirm({
-    title: "是否要残忍离开",
-    okText: "去意已决",
-    cancelText: "再看看",
-    centered: true,
-    onOk() {
-      clearItem("token");
+  showConfirmDialog({
+  message:
+    '是否要残忍离开',
+})
+  .then(() => {
+    clearItem("token");
       clearItem("userName");
       clearItem("userId");
       clearItem("avatar");
       //清完缓存之后手动置空
       loginStatus.value = false;
+      showLogout.value = false
       userName.value = "";
       avatar.value = "";
       menus.value = [
-        { name: "系统设置", path: "/blankpage" },
-        { name: "查看版本", path: "/version" },
+        // { name: "系统设置", path: "/blankpage" },
+        // { name: "查看版本", path: "/version" },
       ];
-    },
-    onCancel() {},
+  })
+  .catch(() => {
+    // on cancel
   });
+  // Modal.confirm({
+  //   title: "是否要残忍离开",
+  //   okText: "去意已决",
+  //   cancelText: "再看看",
+  //   centered: true,
+  //   onOk() {
+  //     clearItem("token");
+  //     clearItem("userName");
+  //     clearItem("userId");
+  //     clearItem("avatar");
+  //     //清完缓存之后手动置空
+  //     loginStatus.value = false;
+  //     showLogout.value = false
+  //     userName.value = "";
+  //     avatar.value = "";
+  //     menus.value = [
+  //       { name: "系统设置", path: "/blankpage" },
+  //       { name: "查看版本", path: "/version" },
+  //     ];
+  //   },
+  //   onCancel() {},
+  // });
 };
 
 const uploadAvatar = () => goto("/uploadavatar");
+const QueryUserWork = async () => {
+  const userId = getItem('userId')
+  const resWork = await myHttp("/api/queryuserwork", {
+    id: userId,
+  });
+  userWork.value = resWork.data;
+  userWork.value.forEach(e => {
+    e.imgpath = `http://127.0.0.1:4000/assets/upload/${e.imgpath}`
+    e.imgpathDetail1 = `http://127.0.0.1:4000/assets/upload/${e.imgpathDetail1}`
+    e.imgpathDetail2 = `http://127.0.0.1:4000/assets/upload/${e.imgpathDetail2}`
+    e.imgpathDetail3 = `http://127.0.0.1:4000/assets/upload/${e.imgpathDetail3}`
+    e.imgpathDetail4 = `http://127.0.0.1:4000/assets/upload/${e.imgpathDetail4}`
+  })
+  console.log("YYYYYuserINNfo", userWork.value);
+};
+
+const QueryLikeData = async () => {
+    const userId = getItem('userId')
+    const token = getItem('token')
+    const res = await myHttp('/api/querylike',{
+        token,
+        userId
+    })
+    if(res.code === 1) {
+        likeList.value = res.data.likeList
+        console.log('2222',likeList.value)
+    }
+}
+
+
+const QueryCollectData = async () => {
+    const userId = getItem('userId')
+    const token = getItem('token')
+    const res = await myHttp('/api/querycollect',{
+        token,
+        userId
+    })
+    if(res.code === 1) {
+        collectList.value = res.data.colleList
+        console.log('222112',collectList.value)
+    }
+}
+// 查询我的关注
+const QueryConcern = async () => {
+  const token = getItem('token')
+  const userId = getItem('userId')
+  const res = await myHttp('/api/queryconcern',{token,userId})
+  if(res.code === 1) {
+    AllConcern.value = res.data.concernList
+    console.log('2222',AllConcern.value)
+  }
+}
+
+const mounted = () => {
+  QueryUserWork()
+  QueryCollectData()
+  QueryLikeData()
+  QueryConcern()
+}
+mounted()
 </script>
 
 <template>
@@ -96,7 +184,7 @@ const uploadAvatar = () => goto("/uploadavatar");
         <div class="top-title">我的主页</div>
       </template>
       <template v-slot:right>
-        <bell-outlined style="font-size: 20px" />
+        <!-- <bell-outlined style="font-size: 20px" /> -->
       </template>
     </top-bar>
     <content :hasTabBar="true" :pull="true" :refreshFunc="fetchData">
@@ -114,14 +202,11 @@ const uploadAvatar = () => goto("/uploadavatar");
           </a-avatar>
         </template>
         <!-- <button @click="logout">退出登录</button> -->
-        <div class="arts-fans">
-          <div>
-            <div style="margin: 0 auto;">0</div>
-            人气
-          </div>
-          <div><div>0</div>作品</div>
-          <div><div style="margin: 0 auto;">0</div>关注</div>
-          <div><div style="margin: 0 auto;">0</div>粉丝</div>
+        <div v-if="loginStatus" class="arts-fans">
+          <div><div style="text-align:center;">{{ userWork.length }}</div>作品</div>
+          <div><div style="text-align:center;">{{AllConcern.length}}</div>关注</div>
+          <div><div style="text-align:center;">{{ likeList.length }}</div>喜欢</div>
+          <div><div style="text-align:center;">{{ collectList.length }}</div>收藏</div>
         </div>
       </div>
       <div style="margin-top:30px;">
@@ -139,7 +224,7 @@ const uploadAvatar = () => goto("/uploadavatar");
           </template>
         </a-list>
       </div>
-      <div style="position:relative;width: 100%; margin-left: 40%;margin-top: 20px;" @click="goto('/logout')">
+      <div v-if="showLogout" style="position:relative;width: 100%; margin-left: 40%;margin-top: 20px;" @click="goto('/logout')">
         <van-button round type="primary">退出登录</van-button>
       </div>
     </content>
@@ -174,12 +259,9 @@ const uploadAvatar = () => goto("/uploadavatar");
     margin: auto;
 }
 .top-title {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
   font-size: large;
   font-weight: 600;
+    text-align: center;
 }
 
 .userName {
